@@ -53,7 +53,7 @@ class Config extends Command {
 		let val = args[1];
 		let op = args[2];
 		if (op) op = op.toLowerCase();
-		if (!key) return msg.channel.send(await generateConfigPropertiesList(serverConfig, msg.guild));
+		if (!key) return msg.channel.send(await generateConfigPropertiesList(serverConfig, msg.guild), { split: true });
 		if (key.toLowerCase() === 'default') {
 			this.client.setServerConfig(msg.guild.id);
 			return msg.channel.send('Set server config to the default');
