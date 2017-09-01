@@ -5,7 +5,7 @@ const Sellbot = require('./sellbotclient.js');
 const client = new Sellbot({
 	configPath: 				'./config.json',
 	defaultServerConfigPath: 	'./defaultConfig.json',
-	commandsDir: 				'./commands/',
+	commandsDir: 				'./src/commands/',
 	disableEveryone:			true,
 	disabledEvents: [
 		'GUILD_MEMBER_ADD',
@@ -33,8 +33,6 @@ const client = new Sellbot({
 	]
 });
 /* eslint-enable key-spacing */
-
-const { log } = client;
 
 client.on('guildCreate', guild => {
 	if (!client.configs.has(guild.id)) client.setServerConfig(guild.id);

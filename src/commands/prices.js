@@ -18,9 +18,11 @@ class Prices extends Command {
 	run(msg, args, serverConfig) {
 		this.client.updateAllTickers();
 		let emb = new Discord.RichEmbed()
-			.setTitle(':b:rypto:b:urrency :b:rices')
+			.setTitle('Cryptocurrency Prices')
 			.setTimestamp();
-		for (let symbol of serverConfig.currencies) {
+		// Only use first 8 currencies or we will reach an embed field limit
+		const currencies = serverConfig.currencies.slice(0, 8);
+		for (let symbol of currencies) {
 			const t = this.client.tickers.get(symbol.toUpperCase());
 			let chg1D = t.percent_change_24h;
 			if (chg1D >= 0) chg1D = `+${chg1D}`;
