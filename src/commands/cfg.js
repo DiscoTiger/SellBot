@@ -63,7 +63,10 @@ class Config extends Command {
 
 		if (Array.isArray(serverConfig[key])) {
 			if (op !== 'add' && op !== 'remove') return msg.channel.send(`${key} is a list. You must specify an operation ('add' or 'remove') to configure lists.`);
-			if (op === 'add') serverConfig[key].push(val);
+			if (op === 'add') {
+				if (key === 'currencies') val.toUpperCase();
+				serverConfig[key].push(val);
+			}
 			if (op === 'remove') {
 				if (!serverConfig[key].includes(val)) return msg.channel.send(`'${val}' is not a valid item in '${key},' could not remove it.`);
 				serverConfig[key] = serverConfig[key].filter(item => item !== val);
