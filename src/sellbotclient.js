@@ -37,22 +37,22 @@ class Sellbot extends Client {
 		// Config loading
 		this.config = {};
 		if (options.configPath) {
-			const dir = path.isAbsolute(options.configPath) ? options.configPath : path.join(process.cwd(), options.configPath); // eslint-disable-line max-len
+			const dir = path.isAbsolute(options.configPath) ? options.configPath : path.join(process.cwd(), options.configPath);
 			if (!fs.existsSync(dir)) throw new Error(`DiscoClient - No config found at ${dir}. Is this path correct?`);
 			const { ext } = path.parse(dir);
-			if (ext && ext !== '.json') throw new TypeError('DiscoClient - Config file type must be json.');
+			if (ext && ext !== '.json') throw new TypeError('Sellbot - Config file type must be json.');
 
 			this.config = JSON.parse(fs.readFileSync(dir));
 		} else { throw new Error('DiscoClient - No configuration file specified'); }
 
 		if (options.defaultServerConfigPath) {
-			const dir = path.isAbsolute(options.defaultServerConfigPath) ? options.defaultServerConfigPath : path.join(process.cwd(), options.defaultServerConfigPath); // eslint-disable-line max-len
-			if (!fs.existsSync(dir)) throw new Error(`DiscoClient - No config found at ${dir}. Is this path correct?`);
+			const dir = path.isAbsolute(options.defaultServerConfigPath) ? options.defaultServerConfigPath : path.join(process.cwd(), options.defaultServerConfigPath);
+			if (!fs.existsSync(dir)) throw new Error(`Sellbot - No config found at ${dir}. Is this path correct?`);
 			const { ext } = path.parse(dir);
-			if (ext && ext !== '.json') throw new TypeError('DiscoClient - Default Server config file type must be json.');
+			if (ext && ext !== '.json') throw new TypeError('Sellbot - Default Server config file type must be json.');
 
 			this.defaultServerConfig = JSON.parse(fs.readFileSync(dir));
-		} else { throw new Error('DiscoClient - No default server configuration file specified'); }
+		} else { throw new Error('Sellbot - No default server configuration file specified'); }
 
 		/**
 		 * Synchronous function that executes before the bot shuts down
@@ -136,15 +136,13 @@ class Sellbot extends Client {
 		let command, args;
 		if (!this.configs.has(msg.guild.id)) {
 			this.setServerConfig(msg.guild.id);
-			msg.channel.send('Your guild didn\'t have a configuration file. We\'ve generated one for you with default settings that you can change any time with the command `cfg`'); // eslint-disable-line
+			msg.channel.send('Your guild didn\'t have a configuration file. We\'ve generated one for you with default settings that you can change any time with the command `cfg`');
 		}
 		let serverConfig = this.configs.get(msg.guild.id);
-
 
 		if (!msg.content.startsWith(serverConfig.prefix.toLowerCase())) return;
 
 		[command = '', ...args] = msg.content.slice(serverConfig.prefix.length).split(/ +/);
-
 		command = command.toLowerCase();
 
 		const cmdFile = this.commands.get(command) || this.commands.get(this.aliases.get(command));
@@ -172,31 +170,6 @@ class Sellbot extends Client {
 			this.log.error(err);
 			msg.channel.send(`There was an error running the ${cmdFile.name} command. \`\`\`xl\n${err}\`\`\`This should never happen.`);
 		}
-	}
-
-	/**
-	 * Loads all tickers into cache if they are older than the configured time limit
-	 * @param {bool} override Optional: update tickers regardless of cache time
-	 * @async
-	 */
-	async updateAllTickers(override) {
-		if (this.tickers.getLastEdit() > this.config.tickerCacheTimeMS || override) {
-			cmcAPI.mapTickers(this.tickers, await cmcAPI.getAllTickers()
-				.then(this.log.log('Tickers loaded'))
-				.catch(err => this.log.error(err.message)));
-		}
-	}
-
-	/**
-	 * Sets a guilds config to default
-	 * @param {*} id Guild id
-	 * @param {*} config Optional config object to override the default
-	 * @returns {Object} Config object set.
-	 */
-	setServerConfig(id, config) {
-		let cfg = config || this.defaultServerConfig;
-		this.configs.set(id, cfg);
-		return cfg;
 	}
 
 	/**
@@ -250,6 +223,40 @@ class Sellbot extends Client {
 			this.log.error('UnhandledPromiseRejection:');
 			this.log.error(err);
 		});
+	}
+
+	/**
+	 * Logs in to discord
+	 * @override
+	 * @param {string} [token] - Optional token to override config token
+	 */
+	login(token) {
+		super.login(this.config.token || token);
+	}
+
+	/**
+	 * Loads all tickers into cache if they are older than the configured time limit
+	 * @param {bool} override Optional: update tickers regardless of cache time
+	 * @async
+	 */
+	async updateAllTickers(override) {
+		if (this.tickers.getLastEdit() > this.config.tickerCacheTimeMS || override) {
+			cmcAPI.mapTickers(this.tickers, await cmcAPI.getAllTickers()
+				.then(this.log.log('Tickers loaded'))
+				.catch(err => this.log.error(err.message)));
+		}
+	}
+
+	/**
+	 * Sets a guilds config to default
+	 * @param {*} id Guild id
+	 * @param {*} config Optional config object to override the default
+	 * @returns {Object} Config object set.
+	 */
+	setServerConfig(id, config) {
+		let cfg = config || this.defaultServerConfig;
+		this.configs.set(id, cfg);
+		return cfg;
 	}
 }
 

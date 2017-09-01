@@ -20,4 +20,4 @@ client.on('guildCreate', guild => {
 	if (!client.configs.has(guild.id)) client.setServerConfig(guild.id);
 });
 
-client.login(client.config.token);
+client.login();
