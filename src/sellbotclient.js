@@ -63,7 +63,7 @@ class Sellbot extends Client {
 
 		this.log = 		logger;
 		this.commands = new Collection();
-		this.aliases = new Collection();
+		this.aliases = 	new Collection();
 		this.configs = 	new PersistentCollection({ name: 'configs', dataDir: '../data' });
 		this.tickers =	new TimestampedMap();
 
@@ -163,6 +163,7 @@ class Sellbot extends Client {
 
 		if (args.length < minArgCount) return msg.channel.send(`Invalid arguments: use \`${serverConfig.prefix}help ${command}\` for details.`);
 
+		this.updateAllTickers();
 		this.log.log('Command: ', msg.content);
 		try {
 			await cmdFile.run(msg, args, serverConfig);
