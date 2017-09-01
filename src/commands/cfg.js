@@ -1,10 +1,28 @@
 /* eslint-disable max-len, consistent-return */
 const Command = require('../command.js');
 
-function generateConfigPropertiesList(serverConfig) {
+// This is fucking disgusting maybe ill fix it later if it causes performance issues
+async function generateConfigPropertiesList(serverConfig, guild) {
+	guild = await guild.fetchMembers();
 	let list = '__**Server Configuration Properties:**__\n\n';
 	for (let prop in serverConfig) {
-		list += `**${prop}:** ${serverConfig[prop]}\n`;
+		let out = '';
+		if (prop === 'adminRoles') {
+			for (let role of serverConfig[prop]) {
+				if (!role) break;
+				out += `\n\t${role}: ${guild.roles.get(role).name}`;
+			}
+		} else if (prop === 'admins') {
+			for (let user of serverConfig[prop]) {
+				if (!user) break;
+				out += `\n\t${user}: ${guild.members.get(user).user.tag}`;
+			}
+		} else if (prop === 'currencies') {
+			out = serverConfig[prop].join(', ');
+		} else {
+			out = serverConfig[prop];
+		}
+		list += `**${prop}:** ${out}\n`;
 	}
 	return list;
 }
@@ -30,17 +48,17 @@ class Config extends Command {
 		});
 	}
 
-	run(msg, args, serverConfig) {
+	async run(msg, args, serverConfig) {
 		const key = args[0];
 		let val = args[1];
 		let op = args[2];
 		if (op) op = op.toLowerCase();
-		if (!key) return msg.channel.send(generateConfigPropertiesList(serverConfig));
+		if (!key) return msg.channel.send(await generateConfigPropertiesList(serverConfig, msg.guild));
 		if (key.toLowerCase() === 'default') {
 			this.client.setServerConfig(msg.guild.id);
 			return msg.channel.send('Set server config to the default');
 		}
-		if (!Object.getOwnPropertyNames(serverConfig).includes(key)) return msg.channel.send(`${key} isn't a valid property name. Could not modify config.\n${generateConfigPropertiesList(serverConfig)}`);
+		if (!Object.getOwnPropertyNames(serverConfig).includes(key)) return msg.channel.send(`${key} isn't a valid property name. Could not modify config.`);
 		if (!val) return msg.channel.send(`Invalid arguments: You must provide a value. Use \`${serverConfig.prefix}help\` for details.`);
 
 		if (Array.isArray(serverConfig[key])) {
