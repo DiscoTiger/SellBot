@@ -1,5 +1,7 @@
 node_modules/
 data/
+.vscode/
+.eslintrc
 config.json
 package-lock.json
 *.bat
