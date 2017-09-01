@@ -11,7 +11,7 @@ class Command {
 	* @property {string} example An example of the command in use
 	* @property {Array<string>} aliases Aliases for the command.
 	* @property {Array<string>} permissions Permissions required to run the command.
-	* @property {boolean} ownerOnly If the command can only be run by a bot owner.
+	* @property {boolean} adminOnly If the command can only be run by a configured bot admin.
 	*/
 
 	/**
@@ -28,7 +28,7 @@ class Command {
 		this.example = options.example;
 		this.aliases = options.aliases;
 		this.permissions = options.permissions;
-		this.ownerOnly = !!options.ownerOnly;
+		this.adminOnly = !!options.adminOnly;
 	}
 	/* eslint-disable max-len */
 	_validateCommand() {

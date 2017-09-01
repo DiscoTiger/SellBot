@@ -25,7 +25,7 @@ class Sellbot extends Client {
      * @property {string} configPath  The path to the config file
 	 * @property {string} defaultServerConfigPath The path to the default server config file
 	 * @property {string} commandsDir The path to the commands folder
-	 * @property {function} cleanupFuntcion Function to run on exit
+	 * @property {function} [cleanupFuntcion] Function to run on exit
      */
 
 	/**
@@ -64,7 +64,7 @@ class Sellbot extends Client {
 		this.log = 		logger;
 		this.commands = new Collection();
 		this.aliases = 	new Collection();
-		this.configs = 	new PersistentCollection({ name: 'configs', dataDir: '../data' });
+		this.configs = 	new PersistentCollection({ name: 'configs', dataDir: './data' });
 		this.tickers =	new TimestampedMap();
 
 		// Listeners
@@ -148,7 +148,12 @@ class Sellbot extends Client {
 		const cmdFile = this.commands.get(command) || this.commands.get(this.aliases.get(command));
 
 		if (!cmdFile) return;
-		if (cmdFile.ownerOnly && !this._owners.includes(msg.author.id)) return;
+
+		if (cmdFile.adminOnly) {
+			if (!serverConfig.admins.includes(msg.author.id) && msg.author.id !== msg.guild.ownerID && !msg.member.roles.filter(x => serverConfig.adminRoles.includes(x.id)).size > 0) {
+				return msg.reply('You cannot use that command, you are not configured as a bot administrator');
+			}
+		}
 
 		if (cmdFile.permissions) {
 			const perms = cmdFile.permissions.filter(validatePermissions);
