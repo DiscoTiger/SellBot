@@ -1,0 +1,12 @@
+{
+	"prefix":               "$",
+	"sendHelpToDM": 1,
+	"currencies":[
+		"BTC",
+		"ZEC",
+		"ETH",
+		"XMR",
+		"ETC",
+		"LBC"
+	]
+}
