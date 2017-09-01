@@ -196,33 +196,37 @@ class Sellbot extends Client {
 			process.stdin.resume();
 		});
 
-		// Catch ctrl+c event and exit normally
+		// Catch termination events like ctrl+c
 		process.on('SIGINT', () => {
 			this.log.warn('Process closing for: SIGINT');
-			process.exit(2);
+			process.exit(128 + 2);
 		});
 
+		// This one is iffy, but a good safeguard for Windows CMD exit
 		process.on('SIGTERM', () => {
 			this.log.warn('Process closing for: SIGTERM');
-			process.exit(2);
+			process.exit(128 + 15);
 		});
 
 		process.on('SIGHUP', () => {
 			this.log.warn('Process closing for: SIGHUP');
-			process.exit(2);
+			process.exit(128 + 1);
 		});
 
 		// Catch uncaught exceptions, trace, then exit normally
 		process.on('uncaughtException', err => {
 			this.log.error('Uncaught Exception:');
 			this.log.error(err.stack);
-			process.exit(2);
+			// Exit code 1 even though exception is technically 'handled'
+			process.exit(1);
 		});
 
 		// Catch unhandled promise rejections and trace
 		process.on('unhandledRejection', err => {
 			this.log.error('UnhandledPromiseRejection:');
 			this.log.error(err);
+			// Exit on unhandled rejection because cracking down on things before public release
+			process.exit(1);
 		});
 	}
 
