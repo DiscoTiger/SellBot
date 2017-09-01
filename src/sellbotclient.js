@@ -64,7 +64,7 @@ class Sellbot extends Client {
 		this.log = 		logger;
 		this.commands = new Collection();
 		this.aliases = new Collection();
-		this.configs = 	new PersistentCollection({ name: 'configs' });
+		this.configs = 	new PersistentCollection({ name: 'configs', dataDir: '../data' });
 		this.tickers =	new TimestampedMap();
 
 		// Listeners
