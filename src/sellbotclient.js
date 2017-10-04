@@ -8,6 +8,7 @@ const logger = require('./log.js');
 const fs = require('fs');
 const readdir = promisify(fs.readdir);
 const path = require('path');
+const snekfetch = require('snekfetch');
 
 function noOp() {} // eslint-disable-line no-empty-function
 function validatePermissions(perm) {
@@ -71,10 +72,20 @@ class Sellbot extends Client {
 		this.on('ready', () => {
 			this.user.setPresence({ game: { name: this.config.game, type: 0 } });
 			this.updateAllTickers(true);
+			this._postGuildCount();
 			this.log.info('Ready');
 		});
 
 		this.on('message', this._processMessage);
+
+		this.on('guildCreate', guild => {
+			if (!this.configs.has(guild.id)) this.setServerConfig(guild.id);
+			this._postGuildCount();
+		});
+
+		this.on('guildDelete', guild => {
+			this._postGuildCount();
+		});
 
 		this.on('warn', err => 			this.log.warn(err));
 		this.on('error', err => 		this.log.error(err));
@@ -233,6 +244,22 @@ class Sellbot extends Client {
 			// Exit on unhandled rejection because cracking down on things before public release
 			process.exit(1);
 		});
+	}
+
+	_postGuildCount() {
+		if (!this.config.dbotstoken || !this.config.dbotspwtoken) return this.log.warn('No discord bot list api token found!');
+
+		snekfetch.post(`https://discordbots.org/api/bots/${this.user.id}/stats`)
+			.set('Authorization', this.config.dbotstoken)
+			.send({ server_count: this.guilds.size }) // eslint-disable-line camelcase
+			.then(() => this.log.info(`dbots stats updated successfully`))
+			.catch(err => this.log.error(err));
+
+		snekfetch.post(`https://bots.discord.pw/api/bots/${this.user.id}/stats`)
+			.set('Authorization', this.config.dbotspwtoken)
+			.send({ server_count: this.guilds.size }) // eslint-disable-line camelcase
+			.then(() => this.log.info('dbotspw stats updated successfully'))
+			.catch(err => this.log.error(err));
 	}
 
 	/**
