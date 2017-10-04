@@ -3,7 +3,7 @@ const Sellbot = require('./sellbotclient.js');
 
 /* eslint-disable key-spacing */
 const client = new Sellbot({
-	configPath: 				'./config.json',
+	configPath: 				'./config_dev.json',
 	defaultServerConfigPath: 	'./defaultConfig.json',
 	commandsDir: 				'./src/commands/',
 	disableEveryone:			true,

@@ -3,5 +3,6 @@ data/
 .vscode/
 .eslintrc
 config.json
+config_dev.json
 package-lock.json
 *.bat
