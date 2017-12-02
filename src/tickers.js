@@ -48,13 +48,13 @@ module.exports = {
      */
 	getAllTickers() {
 		return new Promise(async (resolve, reject) => {
-			const tickers = await snekfetch.get('https://api.coinmarketcap.com/v1/ticker/')
+			const tickers = await snekfetch.get('https://api.coinmarketcap.com/v1/ticker/?limit=0')
 				.then(resp => JSON.parse(resp.text))
 				.catch(reject);
 			if (tickers) {
 				resolve(tickers);
 			} else {
-				reject(new Error(`Ticker response was empty https://api.coinmarketcap.com/v1/ticker/`));
+				reject(new Error(`Ticker response was empty https://api.coinmarketcap.com/v1/ticker/?limit=0`));
 			}
 		});
 	},
