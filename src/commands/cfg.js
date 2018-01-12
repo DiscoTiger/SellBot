@@ -1,7 +1,6 @@
 /* eslint-disable max-len, consistent-return */
 const Command = require('../command.js');
 
-// This is fucking disgusting maybe ill fix it later if it causes performance issues
 async function generateConfigPropertiesList(serverConfig, guild) {
 	guild = await guild.fetchMembers();
 	let list = '__**Server Configuration Properties:**__\n\n';
@@ -34,10 +33,9 @@ class Config extends Command {
 			description: 'Sets <key> of config to [value] or resets the config to default',
 			use: [
 				['<key> | \'default\'', false],
-				['[value]', false],
-				['[add | remove] - If configuring a list, whether to \'add\' or \'remove\' [value] from the list']
+				['<value>', false]
 			],
-			example: '*cfg prefix !* - Sets \'prefix\' to \'!\'\n\t*cfg currencies BTC add* - adds \'BTC\' to the \'currencies\' list',
+			example: '*cfg prefix !* - Sets \'prefix\' to \'!\'\n\t*cfg currencies BTC* - adds \'BTC\' to the \'currencies\' list or removes \'BTC\' from the list if it is present.',
 			aliases: [
 				'config'
 			],
@@ -51,8 +49,7 @@ class Config extends Command {
 	async run(msg, args, serverConfig) {
 		const key = args[0];
 		let val = args[1];
-		let op = args[2];
-		if (op) op = op.toLowerCase();
+		// If no key provided, quit and send a list of valid keys and values
 		if (!key) return msg.channel.send(await generateConfigPropertiesList(serverConfig, msg.guild), { split: true });
 		if (key.toLowerCase() === 'default') {
 			this.client.setServerConfig(msg.guild.id);
@@ -62,16 +59,15 @@ class Config extends Command {
 		if (!val) return msg.channel.send(`Invalid arguments: You must provide a value. Use \`${serverConfig.prefix}help\` for details.`);
 
 		if (Array.isArray(serverConfig[key])) {
-			if (op !== 'add' && op !== 'remove') return msg.channel.send(`${key} is a list. You must specify an operation ('add' or 'remove') to configure lists.`);
-			if (op === 'add') {
-				if (key === 'currencies') val.toUpperCase();
+			if (key === 'currencies') val = val.toUpperCase();
+
+			if (!serverConfig[key].includes(val)) {
 				serverConfig[key].push(val);
-			}
-			if (op === 'remove') {
-				if (!serverConfig[key].includes(val)) return msg.channel.send(`'${val}' is not a valid item in '${key},' could not remove it.`);
+			} else {
 				serverConfig[key] = serverConfig[key].filter(item => item !== val);
 			}
-			msg.channel.send(`Successfully ${op === 'add' ? 'add' : 'remov'}ed '${val}'`);
+
+			msg.channel.send(`Successfully ${serverConfig[key].includes(val) ? 'removed' : 'added'} '${val}'`);
 		} else {
 			if (typeof serverConfig[key] === 'number') val = parseInt(val.replace(/[^0-9.]/, ''));
 			msg.channel.send(`Set value of '${key}' to '${val}' (from '${serverConfig[key]}')`);
