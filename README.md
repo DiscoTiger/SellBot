@@ -9,7 +9,7 @@ cfg prefix !
 
 ### Commands:
 * cfg: Sets values in your servers configuration file
-* convert: Converts an ammount one cryptocurrency to another
+* convert: Converts an amount one cryptocurrency to another
 * help: Displays help about all or specific commands
 * info: Displays detailed information about a coin.
 * prices: Displays info about a list of currencies configured by your server.
