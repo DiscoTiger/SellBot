@@ -1,15 +1,32 @@
 /* eslint-disable max-len, consistent-return */
 const Command = require('../command.js');
+const Types = require('../types');
 
 class Convert extends Command {
 	constructor(client) {
 		super(client, {
 			name: 'convert',
 			description: 'Converts one cryptocurrency to another',
-			use: [
-				['<symbol>', true],
-				['<amount>', true],
-				['<symbol2> - defaults to USD', false]
+			use:
+			[
+				{
+					key: 'symbol1',
+					description: 'crypto symbol to convert FROM',
+					required: true,
+					type: Types.StringArgumentType
+				},
+				{
+					key: 'amount',
+					description: 'amount of symbol1 to convert',
+					required: true,
+					type: Types.FloatArgumentType
+				},
+				{
+					key: 'symbol2',
+					description: 'crypto symbol to convert TO',
+					required: false,
+					type: Types.StringArgumentType
+				}
 			],
 			example: '*convert BTC 1* - Convert 1 BTC to USD\n\t*convert BTC 1 ETH* - Convert 1 BTC to ETH',
 			aliases: [

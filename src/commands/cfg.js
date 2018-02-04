@@ -1,5 +1,6 @@
 /* eslint-disable max-len, consistent-return */
 const Command = require('../command.js');
+const Types = require('../types');
 
 async function generateConfigPropertiesList(serverConfig, guild) {
 	guild = await guild.fetchMembers();
@@ -32,8 +33,17 @@ class Config extends Command {
 			name: 'cfg',
 			description: 'Sets <key> of config to [value] or resets the config to default',
 			use: [
-				['<key> | \'default\'', false],
-				['<value>', false]
+				{
+					key: 'key',
+					required: false,
+					description: 'config value to edit | default',
+					type: Types.StringArgumentType
+				},
+				{
+					key: 'value',
+					description: 'value to be set / object to add or remove',
+					required: false
+				}
 			],
 			example: '*cfg prefix !* - Sets \'prefix\' to \'!\'\n\t*cfg currencies BTC* - adds \'BTC\' to the \'currencies\' list or removes \'BTC\' from the list if it is present.',
 			aliases: [
@@ -51,6 +61,7 @@ class Config extends Command {
 		let val = args[1];
 		// If no key provided, quit and send a list of valid keys and values
 		if (!key) return msg.channel.send(await generateConfigPropertiesList(serverConfig, msg.guild), { split: true });
+		// If key is 'default' et config to default
 		if (key.toLowerCase() === 'default') {
 			this.client.setServerConfig(msg.guild.id);
 			return msg.channel.send('Set server config to the default');
@@ -62,14 +73,15 @@ class Config extends Command {
 			if (key === 'currencies') val = val.toUpperCase();
 
 			if (!serverConfig[key].includes(val)) {
+				if (serverConfig[key].length >= 8) return msg.channel.send('You cannot specify more than 8 currencies.');
 				serverConfig[key].push(val);
 			} else {
 				serverConfig[key] = serverConfig[key].filter(item => item !== val);
 			}
 
-			msg.channel.send(`Successfully ${serverConfig[key].includes(val) ? 'removed' : 'added'} '${val}'`);
+			msg.channel.send(`Successfully ${serverConfig[key].includes(val) ? 'added' : 'removed'} '${val}'`);
 		} else {
-			if (typeof serverConfig[key] === 'number') val = parseInt(val.replace(/[^0-9.]/, ''));
+			if (typeof serverConfig[key] === 'number') val = parseInt(val);
 			msg.channel.send(`Set value of '${key}' to '${val}' (from '${serverConfig[key]}')`);
 			serverConfig[key] = val;
 		}

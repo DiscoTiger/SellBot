@@ -4,7 +4,7 @@ const { RichEmbed } = require('discord.js');
 class Status extends Command {
 	constructor(client) {
 		super(client, {
-			name: 'prices',
+			name: 'status',
 			description: 'Displays info about Sellbot.',
 			use: [],
 			aliases: [
@@ -18,9 +18,11 @@ class Status extends Command {
 	run(msg, args, serverConfig) {
 		const emb = new RichEmbed()
 			.setTitle(`Sellbot v${this.client.config.version} Info`)
-			.addField('Prefix', serverConfig.prefix);
-		
-			msg.channel.send({ embed: emb });
+			.addField('Prefix', serverConfig.prefix)
+			.addField('Guild Count', this.client.guilds.size)
+			.addField('Memory Usage', `${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} MB`);
+
+		msg.channel.send({ embed: emb });
 	}
 }
 
