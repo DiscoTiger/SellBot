@@ -1,14 +1,16 @@
 /* eslint-disable complexity, consistent-return, max-len */
 const { Client, Collection, Permissions } = require('discord.js');
-const { inspect, promisify } = require('util');
+const { promisify } = require('util');
 const TimestampedMap = require('./TimestampedMap.js');
-const PersistentCollection = require('djs-collection-persistent');
+// This is temporary
+const Enmap = require('enmap');
 const cmcAPI = require('./tickers.js');
 const logger = require('./log.js');
 const fs = require('fs');
 const readdir = promisify(fs.readdir);
 const path = require('path');
 const snekfetch = require('snekfetch');
+const Types = require('./types');
 
 function noOp() {} // eslint-disable-line no-empty-function
 function validatePermissions(perm) {
@@ -26,7 +28,7 @@ class Sellbot extends Client {
      * @property {string} configPath  The path to the config file
 	 * @property {string} defaultServerConfigPath The path to the default server config file
 	 * @property {string} commandsDir The path to the commands folder
-	 * @property {function} [cleanupFuntcion] Function to run on exit
+	 * @property {function} [cleanupFunction] Function to run on exit
      */
 
 	/**
@@ -65,7 +67,7 @@ class Sellbot extends Client {
 		this.log = 		logger;
 		this.commands = new Collection();
 		this.aliases = 	new Collection();
-		this.configs = 	new PersistentCollection({ name: 'configs', dataDir: './data' });
+		this.configs = 	new Enmap({ name: 'configs', dataDir: './data' });
 		this.tickers =	new TimestampedMap();
 
 		// Listeners
@@ -83,7 +85,7 @@ class Sellbot extends Client {
 			this._postGuildCount();
 		});
 
-		this.on('guildDelete', guild => {
+		this.on('guildDelete', () => {
 			this._postGuildCount();
 		});
 
@@ -134,7 +136,7 @@ class Sellbot extends Client {
 
 	/**
 	 * Message handler
-	 * @method _processMessge
+	 * @method _processMessage
 	 * @param {Object} msg dab
 	 * @async
 	 * @private
@@ -175,9 +177,19 @@ class Sellbot extends Client {
 			if (missing.length) return msg.channel.send(`You need the following permissions to run this command: \`\`\`\n${missing.join(', ')}\n\`\`\``);
 		}
 
-		const minArgCount = cmdFile.use ? cmdFile.use.filter(a => a[1]).length : 0;
+		// Const minArgCount = cmdFile.use ? cmdFile.use.filter(a => a.required || false).length : 0;
 
-		if (args.length < minArgCount) return msg.channel.send(`Invalid arguments: use \`${serverConfig.prefix}help ${command}\` for details.`);
+		// if (args.length < minArgCount) return msg.channel.send(`Invalid arguments: use \`${serverConfig.prefix}help ${command}\` for details.`);
+
+		for (let i in cmdFile.use) {
+			const arg = cmdFile.use[i];
+			if (!args[i] && arg.required) return msg.channel.send(`The argument ${arg.key} is required.`);
+			if (args[i]) {
+				const type = arg.type ? new arg.type(this) : new Types.StringArgumentType(this); // eslint-disable-line new-cap
+				if (!type.validate(args[i], msg, arg)) return msg.channel.send(`Invalid value for argument '${arg.key}'`);
+				args[i] = type.parse(args[i]);
+			}
+		}
 
 		this.updateAllTickers();
 		this.log.log('Command: ', msg.content);
@@ -199,7 +211,7 @@ class Sellbot extends Client {
 	}
 
 	/**
-	 * Adds listners for error and close events / signals that log properly and run a cleanup function before closing
+	 * Adds listeners for error and close events / signals that log properly and run a cleanup function before closing
 	 */
 	_registerCleanup() {
 		this.on('cleanup', () => {
