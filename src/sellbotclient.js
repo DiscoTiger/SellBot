@@ -2,8 +2,7 @@
 const { Client, Collection, Permissions } = require('discord.js');
 const { promisify } = require('util');
 const TimestampedMap = require('./TimestampedMap.js');
-// This is temporary
-const Enmap = require('enmap');
+const Keyv = require('keyv');
 const cmcAPI = require('./tickers.js');
 const logger = require('./log.js');
 const fs = require('fs');
@@ -67,8 +66,12 @@ class Sellbot extends Client {
 		this.log = 		logger;
 		this.commands = new Collection();
 		this.aliases = 	new Collection();
-		this.configs = 	new Enmap({ name: 'configs', dataDir: './data' });
 		this.tickers =	new TimestampedMap();
+		
+		this.configs = 	new Keyv("sqlite://sellbot_configs.sqlite");
+		this.configs.on('error', err => {
+			this.log.error('[KEYV] Could not connect to sqlite database: ', err);
+		});
 
 		// Listeners
 		this.on('ready', () => {
@@ -80,8 +83,9 @@ class Sellbot extends Client {
 
 		this.on('message', this._processMessage);
 
-		this.on('guildCreate', guild => {
-			if (!this.configs.has(guild.id)) this.setServerConfig(guild.id);
+		this.on('guildCreate', async guild => {
+			const cfg = await this.configs.get(guild.id);
+			if (!cfg) this.setServerConfig(guild.id);
 			this._postGuildCount();
 		});
 
@@ -147,11 +151,12 @@ class Sellbot extends Client {
 		if (!msg.guild) return;
 
 		let command, args;
-		if (!this.configs.has(msg.guild.id)) {
-			this.setServerConfig(msg.guild.id);
+		let serverConfig = await this.configs.get(msg.guild.id);
+		if (!serverConfig) {
+			await this.setServerConfig(msg.guild.id);
+			serverConfig = this.defaultServerConfig;
 			msg.channel.send('Your guild didn\'t have a configuration file. We\'ve generated one for you with default settings that you can change any time with the command `cfg`');
 		}
-		let serverConfig = this.configs.get(msg.guild.id);
 
 		if (!msg.content.startsWith(serverConfig.prefix.toLowerCase())) return;
 
@@ -302,9 +307,9 @@ class Sellbot extends Client {
 	 * @param {*} config Optional config object to override the default
 	 * @returns {Object} Config object set.
 	 */
-	setServerConfig(id, config) {
+	async setServerConfig(id, config) {
 		let cfg = config || this.defaultServerConfig;
-		this.configs.set(id, cfg);
+		await this.configs.set(id, cfg).catch(err => {this.log.error('Could not set guild config: ', err)});
 		return cfg;
 	}
 }
