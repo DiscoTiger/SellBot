@@ -9,7 +9,7 @@ cfg prefix !
 
 ### Commands:
 * cfg: Sets values in your servers configuration file
-* convert: Converts an ammount one cryptocurrency to another
+* convert: Converts an amount one cryptocurrency to another
 * help: Displays help about all or specific commands
 * info: Displays detailed information about a coin.
 * prices: Displays info about a list of currencies configured by your server.
@@ -54,3 +54,5 @@ You can remove currencies from this list with the following command:
 ```
 cfg currencies YOUR_CURRENCY_SYMBOL_HERE remove
 ```
+[![Discord Bots](https://discordbots.org/api/widget/status/323591523713155074.svg)](https://discordbots.org/bot/323591523713155074)
+[![Discord Bots](https://discordbots.org/api/widget/servers/323591523713155074.svg)](https://discordbots.org/bot/323591523713155074)

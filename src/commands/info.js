@@ -1,13 +1,18 @@
 const Discord = require('discord.js');
 const Command = require('../command.js');
-
+const Types = require('../types');
 class Info extends Command {
 	constructor(client) {
 		super(client, {
 			name: 'info',
 			description: 'Displays detailed information about a coin.',
 			use: [
-				['<symbol>', true]
+				{
+					key: 'symbol',
+					description: 'crypto symbol to fetch info of',
+					required: true,
+					type: Types.StringArgumentType
+				}
 			],
 			example: '*info BTC* - Displays info about Bitcoin',
 			aliases: [
